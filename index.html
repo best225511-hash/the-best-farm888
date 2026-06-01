@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Best Farm</title>
+
+<style>
+body {margin:0;font-family:Arial;background:#f4f6f6;color:#333}
+header {background:linear-gradient(135deg,#2e7d32,#1b5e20);color:white;text-align:center;padding:20px}
+header img {width:120px;border-radius:12px;background:white;cursor:pointer}
+.hero,.section {background:white;margin:15px;padding:20px;border-radius:12px}
+.btn {display:inline-block;margin-top:10px;padding:10px 15px;background:#2e7d32;color:white;border-radius:8px;text-decoration:none;cursor:pointer}
+.grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.card {border:1px solid #eee;border-radius:10px;overflow:hidden;text-align:center;position:relative}
+.card img {width:100%;height:140px;object-fit:cover}
+.edit {position:fixed;bottom:15px;right:15px;background:#000;color:#fff;padding:10px 15px;border-radius:50px;cursor:pointer}
+.admin-panel {display:none;position:fixed;top:0;left:0;right:0;background:white;padding:20px;box-shadow:0 5px 20px rgba(0,0,0,0.2);z-index:999}
+input,textarea {width:100%;margin:5px 0;padding:8px}
+</style>
+</head>
+
+<body>
+
+<!-- ADMIN PANEL -->
+<div class="admin-panel" id="adminPanel">
+<h3>🔐 Admin Panel</h3>
+<input type="password" id="pass" placeholder="รหัสผ่าน">
+<button onclick="login()">เข้าสู่ระบบ</button>
+
+<hr>
+
+<button onclick="toggleEdit()">✏️ เปิด/ปิด โหมดแก้ไข</button>
+<button onclick="addBreed()">➕ เพิ่มสายพันธุ์ไก่</button>
+<button onclick="addNews()">📰 เพิ่มข่าว</button>
+<button onclick="saveData()">💾 บันทึก</button>
+</div>
+
+<!-- HEADER -->
+<header>
+<img id="logo" src="logo.png" alt="โลโก้ฟาร์ม">
+<h1 contenteditable="false" class="editText">เดอะเบสซ์ฟาร์ม</h1>
+<p contenteditable="false" class="editText">The Best Farm</p>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+<h2 contenteditable="false" class="editText">🐔 ฟาร์มไก่คุณภาพพรีเมียม</h2>
+<p contenteditable="false" class="editText">ไข่หลากสี ไก่สายพันธุ์แท้ เลี้ยงธรรมชาติ</p>
+</div>
+
+<!-- BREEDS -->
+<div class="section">
+<h2>🐓 สายพันธุ์ไก่</h2>
+<div class="grid" id="breedGrid"></div>
+</div>
+
+<!-- NEWS -->
+<div class="section">
+<h2>📰 ข่าวสาร</h2>
+<div id="newsBox"></div>
+</div>
+
+<!-- CONTACT -->
+<div class="section">
+<h2>📞 ติดต่อเรา</h2>
+<p contenteditable="false" class="editText">📱 082-193-1056</p>
+<p contenteditable="false" class="editText">💬 Line: best25511</p>
+<p contenteditable="false" class="editText">📘 Facebook: The Best Farm</p>
+<a class="btn" href="tel:0821931056">โทรเลย</a>
+</div>
+
+<footer style="text-align:center;padding:15px;background:#222;color:white">
+© 2026 The Best Farm
+</footer>
+
+<div class="edit" onclick="openAdmin()">⚙️ Admin</div>
+
+<script>
+let editMode = false;
+
+// โหลดข้อมูล
+let breeds = JSON.parse(localStorage.getItem("breeds")) || [
+{name:"Easter Egger",img:"https://images.unsplash.com/photo-1604908176997-125f25cc500f?w=600"},
+{name:"Olive Egger",img:"https://images.unsplash.com/photo-1612178537253-bccd437bffd5?w=600"}
+];
+
+let news = JSON.parse(localStorage.getItem("news")) || [];
+
+// render
+function render(){
+document.getElementById("breedGrid").innerHTML =
+breeds.map((b,i)=>`
+<div class="card">
+<img src="${b.img}">
+<h3 contenteditable="${editMode}" oninput="breeds[${i}].name=this.innerText">${b.name}</h3>
+<button onclick="removeBreed(${i})">ลบ</button>
+</div>`).join("");
+
+document.getElementById("newsBox").innerHTML =
+news.map((n,i)=>`
+<p contenteditable="${editMode}" oninput="news[${i}]=this.innerText">📝 ${n}</p>
+<button onclick="removeNews(${i})">ลบ</button>
+`).join("");
+}
+render();
+
+// admin
+function openAdmin(){
+document.getElementById("adminPanel").style.display="block";
+}
+
+function login(){
+if(document.getElementById("pass").value==="admin123"){
+alert("เข้าสู่ระบบสำเร็จ");
+document.getElementById("adminPanel").style.display="none";
+editMode=true;
+document.querySelectorAll(".editText").forEach(e=>e.contentEditable=true);
+render();
+}else{
+alert("รหัสผิด");
+}
+}
+
+function toggleEdit(){
+editMode=!editMode;
+document.querySelectorAll(".editText").forEach(e=>e.contentEditable=editMode);
+render();
+}
+
+function changeLogo(){
+let input=document.createElement("input");
+input.type="file";
+input.onchange=e=>{
+let file=e.target.files[0];
+let reader=new FileReader();
+reader.onload=function(){
+document.getElementById("logo").src=reader.result;
+}
+reader.readAsDataURL(file);
+}
+input.click();
+}
+
+function addBreed(){
+breeds.push({name:"New Breed",img:"https://via.placeholder.com/300"});
+render();
+}
+
+function removeBreed(i){
+breeds.splice(i,1);
+render();
+}
+
+function addNews(){
+let t=prompt("ใส่ข่าว:");
+if(t){news.push(t);render();}
+}
+
+function removeNews(i){
+news.splice(i,1);
+render();
+}
+
+function saveData(){
+localStorage.setItem("breeds",JSON.stringify(breeds));
+localStorage.setItem("news",JSON.stringify(news));
+alert("บันทึกแล้ว");
+}
+</script>
+
+</body>
+</html>
+<img src="https://via.placeholder.com/150">
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farm Admin Fix</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#f4f6f6}
+header{background:green;color:white;text-align:center;padding:20px}
+img{width:120px;border-radius:10px;background:white}
+.section{background:white;margin:10px;padding:15px;border-radius:10px}
+.btn{padding:10px;background:#2e7d32;color:white;border-radius:8px;display:inline-block}
+.adminBtn{position:fixed;bottom:20px;right:20px;background:black;color:white;padding:12px;border-radius:50px;cursor:pointer}
+.panel{position:fixed;top:0;left:0;right:0;background:white;padding:15px;display:none;z-index:999}
+input{width:100%;padding:8px;margin:5px 0}
+.edit{border:2px dashed transparent}
+.edit.active{border:2px dashed red}
+</style>
+</head>
+
+<body>
+
+<header>
+<img id="logo" src="logo.png" alt="logo">
+<h1 class="edit">เดอะเบสซ์ฟาร์ม</h1>
+<p class="edit">The Best Farm</p>
+</header>
+
+<div class="section">
+<h2 class="edit">🐔 ฟาร์มไก่คุณภาพ</h2>
+<p class="edit">ไข่ธรรมชาติ ฟาร์มปลอดภัย</p>
+</div>
+
+<div class="section">
+<p class="edit">📞 082-193-1056</p>
+</div>
+
+<div class="adminBtn" id="openAdmin">⚙️ Admin</div>
+
+<div class="panel" id="panel">
+<h3>Admin Login</h3>
+<input type="password" id="pass" placeholder="password">
+<button id="loginBtn">Login</button>
+<button id="editBtn">Toggle Edit</button>
+<button id="closeBtn">Close</button>
+</div>
+
+<script>
+// ===== ELEMENTS =====
+const panel=document.getElementById("panel");
+const openAdmin=document.getElementById("openAdmin");
+const loginBtn=document.getElementById("loginBtn");
+const editBtn=document.getElementById("editBtn");
+const closeBtn=document.getElementById("closeBtn");
+
+let editMode=false;
+
+// ===== OPEN PANEL =====
+openAdmin.addEventListener("click",()=>{
+panel.style.display="block";
+});
+
+// ===== CLOSE =====
+closeBtn.addEventListener("click",()=>{
+panel.style.display="none";
+});
+
+// ===== LOGIN =====
+loginBtn.addEventListener("click",()=>{
+const pass=document.getElementById("pass").value;
+
+if(pass==="admin123"){
+alert("Login success");
+editMode=true;
+enableEdit(true);
+panel.style.display="none";
+}else{
+alert("Wrong password");
+}
+});
+
+// ===== TOGGLE EDIT =====
+editBtn.addEventListener("click",()=>{
+editMode=!editMode;
+enableEdit(editMode);
+});
+
+// ===== ENABLE EDIT =====
+function enableEdit(state){
+document.querySelectorAll(".edit").forEach(el=>{
+el.contentEditable=state;
+el.classList.toggle("active",state);
+});
+}
+
+// ===== LOGO FIX =====
+document.getElementById("logo").addEventListener("click",()=>{
+const input=document.createElement("input");
+input.type="file";
+input.accept="image/*";
+
+input.onchange=(e)=>{
+const file=e.target.files[0];
+const reader=new FileReader();
+
+reader.onload=()=>{
+document.getElementById("logo").src=reader.result;
+};
+
+reader.readAsDataURL(file);
+};
+
+input.click();
+});
+</script>
+
+</body>
+</html>
